@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Outils de Chiffrement</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef1f5;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header, footer {
+      width: 100%;
+      text-align: center;
+      padding: 15px;
+      color: white;
+      background-color: #2c3e50; /* Couleur foncée */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    footer {
+      margin-top: 40px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+      color: #34495e;
+    }
+    select, input, textarea, button {
+      width: 100%;
+      max-width: 500px;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 120px;
+      resize: vertical;
+    }
+    button {
+      cursor: pointer;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      margin-top: 15px;
+      transition: background-color 0.3s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #downloadBtn {
+      background-color: #2ecc71;
+      margin-top: 15px;
+      max-width: 200px;
+      display: none;
+    }
+    #downloadBtn:hover {
+      background-color: #27ae60;
+    }
+    #output {
+      white-space: pre-wrap;
+      margin-top: 20px;
+      max-width: 500px;
+      padding: 15px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      min-height: 80px;
+      color: #2c3e50;
+    }
+    /* Icône flèche vers le bas pour le bouton */
+    .download-icon {
+      width: 16px;
+      height: 16px;
+      fill: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chiffrement / Déchiffrement</h1>
+
+  <main>
+    <p>Choisissez un algorithme, entrez votre texte et éventuellement une clé.</p>
+
+    <select id="algoSelect">
+      <option value="caesar">1. Caesar</option>
+      <option value="albam">2. Albam</option>
+      <option value="alberti">3. Alberti</option>
+      <option value="trithemius">4. Trithemius</option>
+      <option value="substitution">5. Substitution</option>
+      <option value="atbah">6. Atbah</option>
+      <option value="atbash">7. Atbash</option>
+      <option value="polybe">8. Polybe</option>
+      <option value="vigenere">9. Vigenère</option>
+      <option value="autokey">10. Autokey</option>
+      <option value="porta">11. Porta</option>
+      <option value="beaufort">12. Beaufort</option>
+      <option value="vernam">13. Vernam (binaire)</option>
+      
+    </select><br>
+
+    <textarea id="inputText" rows="4" placeholder="Entrez le texte ici..."></textarea><br>
+    <input type="text" id="keyInput" placeholder="Clé (si nécessaire)"/><br>
+
+    <button onclick="chiffrer()">Chiffrer</button>
+    <button onclick="dechiffrer()">Déchiffrer</button>
+
+    <div id="output"></div>
+
+    <button id="downloadBtn" onclick="downloadResult()">
+      <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66v-6h3.84L12 2z"/>
+      </svg>
+      Télécharger le résultat
+    </button>
+  </main>
+
+  <script>
+    // Fonctions communes
+    function mod(n, m) { return ((n % m) + m) % m; }
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    // Algorithmes de chiffrement
+    function caesar(text, key, decrypt = false) {
+      let shift = parseInt(key) || 3;
+      if (decrypt) shift = -shift;
+      return text.toUpperCase().replace(/[A-Z]/g, c => alphabet[mod(alphabet.indexOf(c) + shift, 26)]);
+    }
+
+    function albam(text) {
+      return text.toUpperCase().replace(/[A-Z]/g, c => {
+        const i = alphabet.indexOf(c);
+        return i >= 0 ? alphabet[25 - i] : c;
+      });
+    }
+
+    function alberti(text, key, decrypt = false) {
+      const shifted = alphabet.slice(13) + alphabet.slice(0, 13);
+      return text.toUpperCase().replace(/[A-Z]/g, c => {
+        const i = decrypt ? shifted.indexOf(c) : alphabet.indexOf(c);
+        return i >= 0 ? (decrypt ? alphabet[i] : shifted[i]) : c;
+      });
+    }
+
+    function trithemius(text, decrypt = false) {
+      return text.toUpperCase().replace(/[A-Z]/g, (c, i) => {
+        const shift = decrypt ? -i : i;
+        return alphabet[mod(alphabet.indexOf(c) + shift, 26)];
+      });
+    }
+
+    function substitution(text, key, decrypt = false) {
+      key = key.toUpperCase();
+      if (key.length !== 26) return 'Clé invalide pour la substitution.';
+      return text.toUpperCase().replace(/[A-Z]/g, c => {
+        const i = decrypt ? key.indexOf(c) : alphabet.indexOf(c);
+        return i >= 0 ? (decrypt ? alphabet[i] : key[i]) : c;
+      });
+    }
+
+    function atbah(text) {
+      return albam(text); // Même transformation
+    }
+
+    function atbash(text) {
+      return albam(text); // Même transformation
+    }
+
+    function polybe(text) {
+      const table = [
+        'A', 'B', 'C', 'D', 'E',
+        'F', 'G', 'H', 'I', 'K',
+        'L', 'M', 'N', 'O', 'P',
+        'Q', 'R', 'S', 'T', 'U',
+        'V', 'W', 'X', 'Y', 'Z'
+      ];
+      text = text.toUpperCase().replace(/J/g, 'I');
+      return text.replace(/[A-Z]/g, c => {
+        let i = table.indexOf(c);
+        return i >= 0 ? `${Math.floor(i / 5) + 1}${i % 5 + 1}` : c;
+      });
+    }
+
+    function vigenere(text, key, decrypt = false) {
+      key = key.toUpperCase();
+      return text.toUpperCase().replace(/[A-Z]/g, (c, i) => {
+        const shift = alphabet.indexOf(key[i % key.length]);
+        const k = decrypt ? -shift : shift;
+        return alphabet[mod(alphabet.indexOf(c) + k, 26)];
+      });
+    }
+
+    function autokey(text, key, decrypt = false) {
+      key = key.toUpperCase();
+      let fullKey = key;
+      if (!decrypt) fullKey += text.toUpperCase().replace(/[^A-Z]/g, '');
+      return text.toUpperCase().replace(/[A-Z]/g, (c, i) => {
+        const shift = alphabet.indexOf(fullKey[i]);
+        const k = decrypt ? -shift : shift;
+        return alphabet[mod(alphabet.indexOf(c) + k, 26)];
+      });
+    }
+
+    function porta(text, key) {
+      // Simplifiée : identique à Vigenère pour la démo
+      return vigenere(text, key);
+    }
+
+    function beaufort(text, key) {
+      key = key.toUpperCase();
+      return text.toUpperCase().replace(/[A-Z]/g, (c, i) => {
+        const shift = alphabet.indexOf(key[i % key.length]);
+        return alphabet[mod(shift - alphabet.indexOf(c), 26)];
+      });
+    }
+
+    function vernam(text, key) {
+      if (!/^[01]+$/.test(text) || !/^[01]+$/.test(key)) {
+        return "Texte et clé doivent être en binaire.";
+      }
+      return text.split('').map((bit, i) => bit === key[i % key.length] ? '0' : '1').join('');
+    }
+
+    function antikey(text, key) {
+      return text.split('').map((c, i) =>
+        String.fromCharCode(c.charCodeAt(0) ^ key.charCodeAt(i % key.length))
+      ).join('');
+    }
+
+    // Interface utilisateur
+    function chiffrer() {
+      process(false);
+    }
+
+    function dechiffrer() {
+      process(true);
+    }
+
+    function process(decrypt) {
+      const algo = document.getElementById("algoSelect").value;
+      const text = document.getElementById("inputText").value;
+      const key = document.getElementById("keyInput").value;
+      let output = '';
+
+      try {
+        switch (algo) {
+          case "caesar": output = caesar(text, key, decrypt); break;
+          case "albam": output = albam(text); break;
+          case "alberti": output = alberti(text, key, decrypt); break;
+          case "trithemius": output = trithemius(text, decrypt); break;
+          case "substitution": output = substitution(text, key, decrypt); break;
+          case "atbah": output = atbah(text); break;
+          case "atbash": output = atbash(text); break;
+          case "polybe": output = polybe(text); break;
+          case "vigenere": output = vigenere(text, key, decrypt); break;
+          case "autokey": output = autokey(text, key, decrypt); break;
+          case "porta": output = porta(text, key); break;
+          case "beaufort": output = beaufort(text, key); break;
+          case "vernam": output = vernam(text, key); break;
+          case "antikey": output = antikey(text, key); break;
+          default: output = "Algorithme inconnu.";
+        }
+      } catch (e) {
+        output = "Erreur : " + e.message;
+      }
+
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerText = (decrypt ? "Texte déchiffré :\n" : "Texte chiffré :\n") + output;
+
+      // Afficher le bouton de téléchargement uniquement si output non vide
+      const downloadBtn = document.getElementById("downloadBtn");
+      if (output.trim() !== "") {
+        downloadBtn.style.display = "inline-flex";
+      } else {
+        downloadBtn.style.display = "none";
+      }
+    }
+
+    function downloadResult() {
+      const outputText = document.getElementById("output").innerText;
+      const blob = new Blob([outputText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'resultat.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
